@@ -9,10 +9,7 @@ A comprehensive guide to generating and transforming continuous probability dist
 1. Key Features
 2. Distributions Covered
 3. Mathematical Foundations
-4. Installation & Usage
-5. Applications
-6. License
-7. Contact
+4. Applications
 
 ---
 
