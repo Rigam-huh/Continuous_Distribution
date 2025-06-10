@@ -1,0 +1,422 @@
+---
+title: "prac"
+author: "Rigam bhaduri"
+date: "2025-06-08"
+output: html_document
+---
+##Generation of Uniform random numbers in the interval [0,1]
+```{r uniform}
+
+#Uniform Distribution
+
+n <- 10000
+U <- runif(n,min = 0,max = 1)
+hist(U,main = "Uniform random numbers in [0,1]",probability = 1, col = "red")
+s<-seq(0,10,by=0.01)
+d<-dunif(s,min =0, max = 1)
+lines(d~s,col=2, lwd=2, lty=2)
+```
+# Data generation from $Exponential(\lambda)$
+When $X\sim U(0,1)$ then $y=-\frac{1}{\lambda}\log(1-x)$ follows $Exp(\lambda)$ for ant rate parameter $\lambda>0$.
+
+$\textbf{1. Uniform Random Variable Generation}$
+The code generates $n = 10,\!000$ independent uniform random variables:
+
+x = runif(n = 10000, min = 0, max = 1)
+
+Mathematically, this represents:
+\[
+X_i \sim \mathcal{U}(0,1), \quad \text{for } i = 1,2,\ldots,10000
+\]
+where each $X_i$ has probability density function (PDF):
+\[
+f_X(x) = 
+\begin{cases} 
+1 & \text{if } 0 \leq x \leq 1 \\
+0 & \text{otherwise}
+\end{cases}
+\]
+
+$\textbf{2. Exponential Transformation}$
+The transformation to exponential random variables with rate $\lambda = 3$ is:
+
+lambda <- 3
+y = -(1/lambda)*log(1 - x)
+
+This uses the inverse transform method. For an exponential distribution with rate $\lambda$, the:
+1. Cumulative Distribution Function (CDF):
+\[
+F_Y(y) = 1 - e^{-\lambda y}, \quad y \geq 0
+\]
+
+2. Inverse CDF:
+\[
+F_Y^{-1}(u) = -\frac{1}{\lambda}\ln(1 - u), \quad 0 \leq u \leq 1
+\]
+
+Thus each transformed variable is:
+\[
+Y_i = F_Y^{-1}(X_i) = -\frac{1}{\lambda}\ln(1 - X_i)
+\]
+
+$\textbf{3. Theoretical Justification}$
+Since $X \sim \mathcal{U}(0,1)$, then:
+\[
+Y = -\frac{1}{\lambda}\ln(X) \sim \text{Exp}(\lambda)
+\]
+because:
+\begin{align*}
+P(Y \leq y) &= P\left(-\frac{1}{\lambda}\ln(X) \leq y\right) \\
+&= P\left(\ln(X) \geq -\lambda y\right) \\
+&= P\left(X \geq e^{-\lambda y}\right) \\
+&= 1 - e^{-\lambda y}
+\end{align*}
+which is exactly the CDF of an exponential distribution.
+
+Comparing:
+
+1. Empirical distribution (histogram) of the generated $Y_i$ values
+2. Theoretical exponential PDF:
+\[
+f_Y(y) = \lambda e^{-\lambda y}, \quad y \geq 0
+\]
+
+The alignment between histogram and theoretical curve validates the transformation.
+
+
+```{r exponential(lambda)}
+x=runif(n=10000,min = 0,max = 1)
+lambda<-3 # rate parameter 
+y=-(1/lambda)*log(1-x) # transformation 
+hist(y,probability = TRUE,col = "lightblue")
+s<-seq(0,10,by=0.01)
+dexpo<-dexp(s,rate = lambda) # density function 
+lines(dexpo~s, col=2, lwd=2, lty=2)
+```
+
+$\textbf{Generating Gamma-Distributed Random Variables}$
+
+1. Exponential($\lambda$) from Uniform(0,1)}
+If \( X \sim \text{Uniform}(0,1) \), then:
+\[
+Y = -\frac{1}{\lambda} \ln(1 - X) \sim \text{Exponential}(\lambda)
+\]
+
+2. Gamma($n, \lambda$) from Sum of Exponentials
+If \( Y_1, Y_2, \dots, Y_n \overset{\text{i.i.d.}}{\sim} \text{Exponential}(\lambda) \), then:
+\[
+Z = \sum_{i=1}^n Y_i \sim \text{Gamma}(n, \lambda)
+\]
+
+$\textbf{Mathematical Justification}$
+
+1. The CDF of \( \text{Exponential}(\lambda) \) is \( F(y) = 1 - e^{-\lambda y} \).
+2. Its inverse CDF is \( F^{-1}(u) = -\frac{1}{\lambda} \ln(1 - u) \).
+3. The sum of \( n \) i.i.d. exponential variables follows \( \text{Gamma}(n, \lambda) \).
+
+```{r gamma}
+set.seed(123)  # For reproducibility
+n <- 5         # Shape parameter for gamma distribution
+lambda <- 3    # Rate parameter
+
+# Generate n * 10000 uniform random variables
+x <- matrix(runif(n = n * 10000, min = 0, max = 1), ncol = n)
+
+# Transform each column to exponential(lambda)
+y_exp <- -(1/lambda) * log(1 - x)
+
+# Sum the exponentials across rows to get gamma(n, lambda)
+y_gamma <- rowSums(y_exp)
+
+# Plot the histogram
+hist(y_gamma, probability = TRUE, breaks = 30, 
+     main = "Gamma(n, lambda) Distribution", 
+     xlab = "Value", ylab = "Density",col = "violet")
+
+# Add the theoretical gamma density curve
+s <- seq(0, max(y_gamma), by = 0.01)
+dgamma_vals <- dgamma(s, shape = n, rate = lambda)
+lines(s, dgamma_vals, col = 2, lwd = 2, lty = 2)
+
+# Add legend
+legend("topright", legend = c("Empirical", "Theoretical"), 
+       col = c("black", "red"), lty = c(1, 2), lwd = c(1, 2))
+```
+
+$\textbf{Mathematical Foundation}$
+
+$\textbf{Beta Distribution}$
+A random variable \( B \) follows a Beta distribution with parameters \( \alpha \) and \( \beta \) (denoted \( B \sim \text{Beta}(\alpha, \beta) \)) if its PDF is:
+\[
+f_B(b) = \frac{b^{\alpha-1} (1-b)^{\beta-1}}{B(\alpha, \beta)}, \quad 0 \leq b \leq 1
+\]
+where \( B(\alpha, \beta) = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha + \beta)} \) is the Beta function.
+
+$\textbf{Transformation: Gamma to Beta}$
+
+$\textbf{Key Theorem}$
+If \( X \sim \text{Gamma}(\alpha, \lambda) \) and \( Y \sim \text{Gamma}(\beta, \lambda) \) are independent, then:
+\[
+B = \frac{X}{X + Y} \sim \text{Beta}(\alpha, \beta)
+\]
+
+$\textbf{Proof}$
+
+1. $\textbf{Joint Distribution:}$
+    The joint PDF of \( (X, Y) \) is:
+    \[
+    f_{X,Y}(x,y) = \frac{\lambda^\alpha x^{\alpha-1} e^{-\lambda x}}{\Gamma(\alpha)} \cdot \frac{\lambda^\beta y^{\beta-1} e^{-\lambda y}}{\Gamma(\beta)}
+    \]
+
+2. $\textbf{Variable Transformation:}$
+    Let \( B = \frac{X}{X + Y} \) and \( T = X + Y \). The inverse transformations are:
+    \[
+    X = BT, \quad Y = T(1 - B)
+    \]
+    The Jacobian determinant of this transformation is:
+    \[
+    J = \begin{vmatrix}
+    \frac{\partial x}{\partial b} & \frac{\partial x}{\partial t} \\
+    \frac{\partial y}{\partial b} & \frac{\partial y}{\partial t}
+    \end{vmatrix} = \begin{vmatrix}
+    t & b \\
+    -t & 1 - b
+    \end{vmatrix} = t(1 - b) + tb = t
+    \]
+
+3. $\textbf{New Joint PDF:}$
+    Substituting \( (X, Y) = (b t, t(1 - b)) \) into \( f_{X,Y} \) and multiplying by \( |J| = t \):
+    \[
+    f_{B,T}(b,t) = \frac{\lambda^{\alpha + \beta} (b t)^{\alpha-1} (t(1 - b))^{\beta-1} e^{-\lambda t}}{\Gamma(\alpha)\Gamma(\beta)} \cdot t
+    \]
+    Simplifying:
+    \[
+    f_{B,T}(b,t) = \underbrace{\frac{b^{\alpha-1} (1 - b)^{\beta-1}}{B(\alpha, \beta)}}_{\text{Beta PDF}} \cdot \underbrace{\frac{\lambda^{\alpha + \beta} t^{\alpha + \beta - 1} e^{-\lambda t}}{\Gamma(\alpha + \beta)}}_{\text{Gamma PDF}}
+    \]
+
+ $\textbf{Marginal Distribution:}$
+    Since \( f_{B,T}(b,t) \) factors into a Beta PDF in \( b \) and a Gamma PDF in \( t \), \( B \) and \( T \) are independent, and:
+    \[
+    B \sim \text{Beta}(\alpha, \beta)
+    \]
+
+
+```{r beta}
+set.seed(123)
+alpha <- 2  # Shape parameter 1 for Beta
+beta <- 5   # Shape parameter 2 for Beta
+lambda <- 1 # Rate parameter (cancels out in normalization)
+
+# Generate Gamma random variables
+X <- rgamma(n = 10000, shape = alpha, rate = lambda)
+Y <- rgamma(n = 10000, shape = beta, rate = lambda)
+
+# Convert to Beta distribution
+B <- X / (X + Y)
+
+# Plot histogram
+hist(B, probability = TRUE, breaks = 30, 
+     main = "Beta(α, β) Distribution", 
+     xlab = "Value", ylab = "Density",col = "blue")
+
+# Overlay theoretical Beta density
+s <- seq(0, 1, by = 0.01)
+dbeta_vals <- dbeta(s, shape1 = alpha, shape2 = beta)
+lines(s, dbeta_vals, col = 2, lwd = 2, lty = 2)
+
+# Add legend
+legend("topright", legend = c("Empirical", "Theoretical"), 
+       col = c("black", "red"), lty = c(1, 2), lwd = c(1, 2))
+```
+
+$\textbf{Mathematical Theory}$
+
+$\textbf{Uniform Random Variables}$
+Let $U \sim \text{Uniform}(0,1)$ be a continuous random variable with probability density function (PDF):
+\[
+f_U(u) = 
+\begin{cases} 
+1 & \text{for } 0 \leq u \leq 1 \\
+0 & \text{otherwise}
+\end{cases}
+\]
+and cumulative distribution function (CDF):
+\[
+F_U(u) = 
+\begin{cases} 
+0 & \text{for } u < 0 \\
+u & \text{for } 0 \leq u \leq 1 \\
+1 & \text{for } u > 1
+\end{cases}
+\]
+
+$\textbf{Normal Random Variables}$
+Let $Z \sim \mathcal{N}(0,1)$ be a standard normal random variable with PDF:
+\[
+\phi(z) = \frac{1}{\sqrt{2\pi}} e^{-z^2/2}
+\]
+and CDF:
+\[
+\Phi(z) = \int_{-\infty}^z \phi(t) \, dt
+\]
+
+$\textbf{Inverse Transform Method}$
+The key mathematical result used in the transformation is the $\textbf{probability integral transform}:$
+
+Theorem:
+If $U \sim \text{Uniform}(0,1)$ and $F$ is any CDF, then the random variable $X = F^{-1}(U)$ has CDF $F$.
+
+
+Applying this to the normal distribution:
+\[
+Z = \Phi^{-1}(U)
+\]
+where $\Phi^{-1}$ is the quantile function of the standard normal distribution.
+
+```{r Normal}
+# Set seed for reproducibility
+set.seed(123)
+
+# Generate 10,000 uniform random variables
+uniform_data <- runif(10000, min = 0, max = 1)
+
+# Transform to standard normal using inverse CDF (quantile function)
+normal_data_inverse <- qnorm(uniform_data)
+
+# Plot results
+par(mfrow = c(1, 2))
+hist(normal_data_inverse, main = "Normal Distribution (Inverse Transform)", 
+     xlab = "Value", col = "lightgreen", border = "white")
+
+# Add theoretical normal curve
+x <- seq(-4, 4, length.out = 100)
+lines(x, dnorm(x) * 10000 * 0.2, col = "red", lwd = 2) # Scaling factor for visualization
+
+# Q-Q plot to check normality
+qqnorm(normal_data_inverse)
+qqline(normal_data_inverse, col = "red")
+```
+$\textbf{Mathematical Foundation}$
+
+Given $Z \sim \mathcal{N}(0,1)$, the squared standard normal random variable follows a chi-squared distribution:
+
+\[
+Z^2 \sim \chi^2_1
+\]
+
+where:
+1. The $\chi^2_1$ distribution has 1 degree of freedom
+2. Probability density function (PDF):
+\[
+f(x) = \frac{1}{\sqrt{2\pi x}}e^{-x/2} \quad \text{for } x > 0
+\]
+3. Mean: $\mathbb{E}[Z^2] = 1$
+4. Variance: $\text{Var}(Z^2) = 2$
+
+$\textbf{Validation}$
+
+$\textbf{Theoretical vs. Empirical Distribution}$
+The histogram of squared values should match the $\chi^2_1$ density curve. The Q-Q plot compares sample quantiles with theoretical $\chi^2_1$ quantiles.
+
+$\textbf{Hypothesis Testing}$
+The Kolmogorov-Smirnov test statistic:
+\[
+D = \sup_x |F_n(x) - F(x)|
+\]
+where $F_n$ is the empirical CDF and $F$ is the theoretical $\chi^2_1$ CDF.
+
+\subsection{Moment Verification}
+For $Z^2 \sim \chi^2_1$:
+\begin{align*}
+\text{Sample mean} &\approx \mathbb{E}[Z^2] = 1 \\
+\text{Sample variance} &\approx \text{Var}(Z^2) = 2
+\end{align*}
+
+
+```{r kai}
+# Continuing from previous normal distribution generation
+set.seed(123)
+uniform_data <- runif(10000, min = 0, max = 1)
+normal_data <- qnorm(uniform_data)
+
+# Create chi-squared distributed variables (1 degree of freedom)
+chi_sq_data <- normal_data^2
+
+# Plot the results
+par(mfrow = c(1, 2))
+
+# Histogram with theoretical density
+hist(chi_sq_data, breaks = 50, probability = TRUE, 
+     main = expression(paste("Histogram of ", Z^2, " values")),
+     xlab = expression(Z^2), col = "lightgreen", border = "white")
+
+# Add theoretical chi-squared density (df=1)
+curve(dchisq(x, df = 1), from = 0, to = 10, 
+      col = "red", lwd = 2, add = TRUE)
+
+# Q-Q plot against theoretical chi-squared
+qqplot(qchisq(ppoints(10000), df = 1), chi_sq_data,
+       main = expression(paste("Q-Q Plot for ", chi[1]^2, " Distribution")),
+       xlab = "Theoretical Quantiles",
+       ylab = "Sample Quantiles")
+abline(0, 1, col = "red")
+
+# Kolmogorov-Smirnov test
+ks_test <- ks.test(chi_sq_data, "pchisq", df = 1)
+print(ks_test)
+
+# Mean and variance comparison
+cat("Sample mean:", mean(chi_sq_data), "\n")
+cat("Theoretical mean (df=1):", 1, "\n")
+cat("Sample variance:", var(chi_sq_data), "\n")
+cat("Theoretical variance (df=1):", 2, "\n")
+```
+$\textbf{Sum of Squared Normals}$
+
+For $Z_i \overset{iid}{\sim} \mathcal{N}(0,1)$, the sum of their squares follows:
+
+\[
+X = \sum_{i=1}^k Z_i^2 \sim \chi^2_k = \text{Gamma}\left(\frac{k}{2}, \frac{1}{2}\right)
+\]
+
+$\textbf{Properties}$
+1. Shape parameter $\alpha = \frac{k}{2}$
+2. Rate parameter $\beta = \frac{1}{2}$
+3. Mean: $\mathbb{E}[X] = \frac{\alpha}{\beta} = k$
+4. Variance: $\text{Var}(X) = \frac{\alpha}{\beta^2} = 2k$
+
+```{r gammaagain}
+# Continuing from previous normal distribution generation
+set.seed(123)
+uniform_data <- runif(10000, min = 0, max = 1)
+normal_data <- qnorm(uniform_data)
+
+### Using sum of squared normals
+n <- 4  # Number of normals to sum (degrees of freedom)
+k <- n   # Shape parameter for Gamma
+theta <- 2  # Scale parameter (1/rate)
+
+# Create Gamma distributed variables by summing squared normals
+gamma_data1 <- replicate(10000, {
+  sum(rnorm(n)^2)
+})
+
+# Theoretical Gamma parameters for this method
+shape1 <- n/2
+rate1 <- 1/2
+### Visualization
+par(mfrow = c(1, 2))
+
+hist(gamma_data1, breaks = 50, probability = TRUE,
+     main = expression(paste("Sum of ", n, " squared normals")),
+     xlab = "Value", col = "lightblue")
+curve(dgamma(x, shape = shape1, rate = rate1), 
+      col = "red", lwd = 2, add = TRUE)
+### Comparison
+cat("(Sum of squares):\n")
+cat("Sample mean:", mean(gamma_data1), "Theoretical:", shape1/rate1, "\n")
+cat("Sample variance:", var(gamma_data1), "Theoretical:", shape1/rate1^2, "\n\n")
+# KS tests
+ks.test(gamma_data1, "pgamma", shape = shape1, rate = rate1)
+```
+
